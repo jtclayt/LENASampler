@@ -181,10 +181,16 @@ def sample2():
     sampling_criteria_cols = session.get("sampling_criteria_cols", [])
 
     class SamplingForm(FlaskForm):
+        sample_by_day = BooleanField("Select top segments by day", default=False,
+            id="sample-by-day")
         target_num_segments = IntegerField("Target number of segments",
-            default=12, validators=[DataRequired(), NumberRange(min=0, max=len(dft))])
+            default=12, validators=[DataRequired(), NumberRange(min=0, max=len(dft))],
+            id="num-segments")
         random_seed = IntegerField("Sampling Seed (for reproducibility)",
             default=1, validators=[DataRequired(), NumberRange(min=0)])
+
+    if len(sampling_criteria_cols) != 1:
+        delattr(SamplingForm, "sample_by_day")
 
     for col in sampling_criteria_cols :
         setattr(SamplingForm, "%s_min_value"%col,
@@ -216,8 +222,17 @@ def sample2():
             maxv = getattr(getattr(form, "%s_max_value"%col), "data")
             session["sampling_%s_max_value"%col] = maxv
             dft = dft[dft[col] <= maxv]
-        dft = dft.sample(n=min(form.target_num_segments.data, len(dft)),
-                         replace=False, random_state=form.random_seed.data)
+
+        if form.sample_by_day and form.sample_by_day.data:
+            recording_dates = set(dft["RecordingDate"])
+            temp_dft = pd.DataFrame(columns=dft.columns)
+            for date in recording_dates:
+                temp_dft = temp_dft.append(dft.loc[dft['RecordingDate'] == date].sort_values(
+                                by=sampling_criteria_cols, ascending=False)[:form.target_num_segments.data])
+            dft = temp_dft
+        else:
+            dft = dft.sample(n=min(form.target_num_segments.data, len(dft)),
+                            replace=False, random_state=form.random_seed.data)
         sampled_records = dft.to_dict("records")
         session["sampled_records"] = sampled_records
 

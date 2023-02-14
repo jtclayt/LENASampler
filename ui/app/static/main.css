@@ -168,6 +168,15 @@ form {
     color: #a08bb3;
 }
 
+.form-check {
+    margin-bottom: 1rem;
+}
+
+/* Global hidden class */
+.hidden {
+    display: none;
+}
+
 /* .styled-table tr > *:nth-child(2) {
     display: none;
 } */
