@@ -8,7 +8,7 @@
                 <h4> Sampling Criteria </h4>
             </div>
             <div class="row">
-                {{ wtf.quick_form(form) }}
+                {{ wtf.quick_form(form, id="sampling-form") }}
             </div>
         </div>
         <div class="col-6" style="margin-left: 20px;">
@@ -38,7 +38,7 @@
                             </tbody>
                         </table>
                     </div>
-                </div> 
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -47,6 +47,17 @@
 
 <script>
     $(document).ready( function () {
+        const checkBox = document.getElementById("sample-by-day");
+        const toggleFields= () => document
+            .querySelectorAll(".form-group > input:not(#num-segments)")
+            .forEach(input => input.parentElement.classList.toggle("hidden"));
+
+        if (checkBox) {
+            if (checkBox.checked) {
+                toggleFields();
+            }
+            checkBox.onclick = toggleFields;
+        }
         $.noConflict();
         $('#datainput').DataTable( {
             dom: 'Bfrtip',
@@ -62,4 +73,4 @@
     } );
 </script>
 
-{% endblock %} 
+{% endblock %}
